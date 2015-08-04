@@ -3,9 +3,10 @@ glmCSI <- function(object, constraints=NULL, verbose=FALSE)  {
   if(!is.null(constraints)) {
     stop("no constraints specified")
   }
-  if(!class(object)[1]=="glm") {
-    stop("it only works for class is glm()")
+  if(class(object)[1] != "glm") {
+      stop("object must be of class glm")
   }
+
   
   fit.glm <- object
     cnames <- variable.names(fit.glm)
