@@ -1,0 +1,41 @@
+setwd("~/Dropbox/Playing around with R code/CSI/csi.logit")
+library(lavaan)
+source("CSI_glm.R")
+source("lav_partable_from_lm.R")
+source("lav_nlminb_constr.R")
+source("logl_functions.R")
+source("pbar.R")
+source("wt.R")
+
+sim_CSI_glm <- function(n=100, R=999, seed=1234, constraints) {
+  pvalue <- matrix(NA, R, 3)
+  for (i in 1:R) {
+    set.seed(seed+i)
+    cat("iteration =", i)
+    x1 <- rnorm(n)           
+    x2 <- rnorm(n)
+    x3 <- rnorm(n)
+    z <- 1 + 0*x1 + 0*x2# + 0.3*x3        
+    #normal
+    #y <- z + rnorm(n)
+    #binomial
+    #pr <- 1/(1+exp(-z))         
+    #y <- rbinom(n,1,pr) 
+    #poisson
+    #l <- exp(z)
+    #y <- rpois(n, lambda=l)
+    #gamma
+    y_true <- exp(z)
+    shape <- 1
+    y <- rgamma(n, rate=shape/y_true, shape=shape)
+    
+    fit.glm <- glm(y~x1+x2, family=Gamma(link=inverse))
+    pvalue[i,1:3] <- as.matrix(glmCSI(fit.glm, constraints)[,4:6])
+  }
+  pvalue
+}
+
+
+R <- 999
+out <- sim_logitCSI(n=500, R, constraints="x1 > 0; x2 > 0")
+colSums(out <= 0.05) / R
